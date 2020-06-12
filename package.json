@@ -1,0 +1,15 @@
+{
+  "name": "mirai-nodesdk",
+  "version": "1.0.0",
+  "description": "mirai服务器在node上的SDK",
+  "main": "main.js",
+  "license": "MIT",
+  "dependencies": {
+    "flyio": "^0.6.14",
+    "socket.io": "^2.3.0"
+  },
+  "devDependencies": {
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
+  }
+}
