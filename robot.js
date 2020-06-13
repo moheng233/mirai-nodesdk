@@ -6,6 +6,7 @@ const messageChain = require("./messageChain");
  * @todo 有一个bug
  */
 class robot {
+    GetInit = false;
 
     /**
      * 机器人的基础类
@@ -51,6 +52,7 @@ class robot {
         if( e != 0){
             return e;
         }
+        this.GetInit = true;
         return 0;
     }
     /**
