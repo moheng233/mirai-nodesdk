@@ -6,7 +6,10 @@ const messageChain = require("./messageChain");
  * @todo 有一个bug
  */
 class robot {
-    GetInit = false;
+    /**
+     * @var {Boolean} 获取robot有没有正常初始化的变量
+     */
+    isInit = false;
 
     /**
      * 机器人的基础类
