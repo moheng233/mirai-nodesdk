@@ -41,4 +41,4 @@ class MessageChain {
     }
 }
 
-module.exports = MessageChain;
+export default MessageChain;

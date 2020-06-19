@@ -1,5 +1,7 @@
-const fly = require("flyio");
-const messageChain = require("./messageChain");
+import fly from "flyio";
+import ws from "ws";
+// const messageChain = require("./messageChain").default;
+import messageChain from "./messageChain";
 
 /**
  * @class 机器人的基础类
@@ -55,8 +57,15 @@ class robot {
         if( e != 0){
             return e;
         }
+
+        this.wsMessage = this.bindMessage();
+        
         this.GetInit = true;
         return 0;
+    }
+
+    async bind(){
+        
     }
     /**
      * 尝试获得mirai服务器的基础信息
@@ -175,6 +184,18 @@ class robot {
 
         return e.data;
     }
+    /**
+     * 监听机器人接受到的信息
+     */
+    async initMessage() {
+        const wsMessage = new ws("ws://"+this.host+":"+this.port+"/message?sessionKey="+this.session);
+
+        wsMessage.on("open",() => {
+            console.log("websocket 链接成功");
+        });
+
+        return wsMessage;
+    }
 }
 
-module.exports = robot;
+export default robot;
