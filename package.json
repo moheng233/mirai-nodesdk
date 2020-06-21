@@ -4,11 +4,15 @@
   "description": "mirai服务器在node上的SDK",
   "main": "main.js",
   "scripts": {
-    "install": "yarn link"
+    "install": "yarn link",
+    "test": "tsc"
   },
   "license": "MIT",
   "dependencies": {
+    "@types/ws": "^7.2.5",
     "flyio": "^0.6.14",
     "ws": "^7.3.0"
+  },
+  "devDependencies": {
   }
 }

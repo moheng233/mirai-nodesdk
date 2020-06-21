@@ -1,17 +1,24 @@
+// @ts-check
+
 import fly from "flyio";
-import ws from "ws";
+import WebScoket from "ws";
 // const messageChain = require("./messageChain").default;
 import messageChain from "./messageChain";
+
 
 /**
  * @class 机器人的基础类
  * @todo 有一个bug
  */
 class robot {
-    /**
-     * @var {Boolean} 获取robot有没有正常初始化的变量
-     */
-    isInit = false;
+    authKey;
+    host;
+    port;
+    qq;
+    passwd;
+    session;
+    wsMessage;
+    GetInit = false;
 
     /**
      * 机器人的基础类
@@ -39,7 +46,7 @@ class robot {
         let r = await this.about();
 
         let session = await this.auth_key(this.authKey);
-        if( session != false){
+        if( session != null){
             this.session = session;
         } else {
             return {
@@ -61,7 +68,12 @@ class robot {
         this.wsMessage = this.bindMessage();
         
         this.GetInit = true;
-        return 0;
+        return {
+            "code": "0000"
+        };
+    }
+    bindMessage() {
+        throw new Error("Method not implemented.");
     }
 
     async bind(){
@@ -70,7 +82,7 @@ class robot {
     /**
      * 尝试获得mirai服务器的基础信息
      * 使用此方法获取插件的信息，如版本号
-     * @returns {Object} data
+     * @returns {Promise<Object>} data
      */
     async about(){
         let e = await fly.get("/about");
@@ -79,8 +91,9 @@ class robot {
     /**
      * 向mirai服务端验证authkey
      * 使用此方法验证你的身份，并返回一个会话
+     * @template T
      * @param {String} authKey mirai的authKey
-     * @returns {String} mirai返回的session
+     * @returns {Promise<T>} mirai返回的session
      */
     async auth_key(authKey){
         let e = await fly.post("/auth",{
@@ -89,7 +102,7 @@ class robot {
         if(e.data.code == 0){
             return e.data.session;
         } else {
-            return false;
+            return null;
         }
     }
     /**
@@ -98,7 +111,7 @@ class robot {
      * 同时将Session与一个已登录的Bot绑定
      * @param {String} session mirai的session
      * @param {String} qq 要登录机器人的QQ号
-     * @returns {Int16Array} 错误代码
+     * @returns {Promise<Number>} 错误代码
      */
     async verify_session(session,qq){
         let e = await fly.post("/verify",{
@@ -115,7 +128,7 @@ class robot {
      * 长时间（30分钟）未使用的Session将自动释放，
      * 否则Session持续保存Bot收到的消息，
      * 将会导致内存泄露(开启websocket后将不会自动释放)
-     * @returns {Int16Array}
+     * @returns {Promise<Number>}
      */
     async release_session(){
         let e = await fly.post("/release",{
@@ -127,9 +140,10 @@ class robot {
     }
     /**
      * 在服务端执行一条指令
+     * @template T
      * @param {String} command 要执行的指令
-     * @param {Array} arg 参数列表
-     * @returns {String} 返回值
+     * @param {Array} args 参数列表
+     * @returns {Promise<T>} 返回值
      */
     async exec_command(command,args){
         let e = await fly.post("/command/send",{
@@ -142,10 +156,11 @@ class robot {
     }
     /**
      * 使用此方法向指定好友发送消息
+     * @template T
      * @param {String} target 发送消息目标好友的QQ号
-     * @param {Int} quote 引用一条消息的messageId进行回复
+     * @param {Number} quote 引用一条消息的messageId进行回复
      * @param {messageChain} message 消息链，是一个消息对象构成的数组
-     * @returns {Object}
+     * @returns {Promise<T>}
      * @example {code: 0, msg: "success", messageId: 403286}
      */
     async sendFriendMessage(target,quote,message){
@@ -160,7 +175,7 @@ class robot {
     /**
      * 使用此方法向指定群发送消息
      * @param {String} target 发送消息目标好友的QQ号
-     * @param {Int} quote 引用一条消息的messageId进行回复
+     * @param {Number} quote 引用一条消息的messageId进行回复
      * @param {messageChain} message message 消息链，是一个消息对象构成的数组
      */
     async sendGroupMessage(target,quote,message){
@@ -174,8 +189,9 @@ class robot {
     }
     /**
      * 使用此方法撤回指定消息。对于bot发送的消息，有2分钟时间限制。对于撤回群聊中群员的消息，需要有相应权限请求
+     * @template T
      * @param {String} target 需要撤回的消息的messageId
-     * @returns {Object}
+     * @returns {Promise<T>}
      */
     async recallMessage(target){
         let e = await fly.post("/recall",{
@@ -186,9 +202,10 @@ class robot {
     }
     /**
      * 监听机器人接受到的信息
+     * @returns {Promise<WebScoket>}
      */
     async initMessage() {
-        const wsMessage = new ws("ws://"+this.host+":"+this.port+"/message?sessionKey="+this.session);
+        const wsMessage = new WebScoket("ws://"+this.host+":"+this.port+"/message?sessionKey="+this.session,"",{});
 
         wsMessage.on("open",() => {
             console.log("websocket 链接成功");

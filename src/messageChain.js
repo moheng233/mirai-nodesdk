@@ -1,9 +1,11 @@
+// @ts-check
+
 class MessageChain {
-    /**
-     * 消息链数组
-     * @var {Array} message_chain 
+
+    /** 
+     * @type {{ type: string; text?: string; target?: string; }[]} 
      */
-    // message_chain;
+    message_chain;
 
     /**
      * 一个消息链对象
@@ -14,6 +16,7 @@ class MessageChain {
     /**
      * 添加行文字
      * @param {String} text 要发送的文字
+     * @returns {MessageChain}
      */
     add_plain(text){
         this.message_chain.push({
@@ -25,6 +28,7 @@ class MessageChain {
     /**
      * At一个人
      * @param {String} target 要At人的QQ号
+     * @returns {MessageChain}
      */
     add_at(target){
         this.message_chain.push({
@@ -35,6 +39,7 @@ class MessageChain {
     }
     /**
      * 返回消息链的obj格式
+     * @returns {Object}
      */
     getobj(){
         return this.message_chain;
