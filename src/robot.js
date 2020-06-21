@@ -8,15 +8,21 @@ import messageChain from "./messageChain";
 
 /**
  * @class 机器人的基础类
- * @todo 有一个bug
  */
-class robot {
+export default class robot {
+    /** @type {String} */
     authKey;
+    /** @type {String} */
     host;
+    /** @type {String} */
     port;
+    /** @type {String} */
     qq;
+    /** @type {String} */
     passwd;
+    /** @type {String} */
     session;
+    /** @type {WebScoket} */
     wsMessage;
     GetInit = false;
 
@@ -65,20 +71,14 @@ class robot {
             return e;
         }
 
-        this.wsMessage = this.bindMessage();
+        this.wsMessage = await this.initMessage();
         
         this.GetInit = true;
         return {
             "code": "0000"
         };
     }
-    bindMessage() {
-        throw new Error("Method not implemented.");
-    }
 
-    async bind(){
-        
-    }
     /**
      * 尝试获得mirai服务器的基础信息
      * 使用此方法获取插件的信息，如版本号
@@ -214,5 +214,3 @@ class robot {
         return wsMessage;
     }
 }
-
-export default robot;

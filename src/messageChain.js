@@ -1,6 +1,6 @@
 // @ts-check
 
-class MessageChain {
+export default class MessageChain {
 
     /** 
      * @type {{ type: string; text?: string; target?: string; }[]} 
@@ -39,11 +39,22 @@ class MessageChain {
     }
     /**
      * 返回消息链的obj格式
-     * @returns {Object}
      */
-    getobj(){
+    getObj(){
         return this.message_chain;
     }
-}
 
-export default MessageChain;
+    /**
+     * 返回消息链的Str格式
+     * @returns {String}
+     */
+    getStr(){
+        let Str = "";
+
+        this.getObj().forEach(element => {
+            
+        });
+
+        return "";
+    }
+}
