@@ -1,24 +1,18 @@
-// @ts-check
-
 export default class MessageChain {
 
-    /** 
-     * @type {{ type: string; text?: string; target?: string; }[]} 
-     */
-    message_chain;
+    message_chain: { type: String; text?: String; target?: String; }[] = [];
 
     /**
      * 一个消息链对象
      */
     constructor(){
-        this.message_chain = [];
     }
     /**
      * 添加行文字
      * @param {String} text 要发送的文字
      * @returns {MessageChain}
      */
-    add_plain(text){
+    add_plain(text: string): MessageChain{
         this.message_chain.push({
             "type": "Plain",
             "text": text
@@ -30,7 +24,7 @@ export default class MessageChain {
      * @param {String} target 要At人的QQ号
      * @returns {MessageChain}
      */
-    add_at(target){
+    add_at(target: string): MessageChain{
         this.message_chain.push({
             "type": "At",
             "target": target
@@ -48,13 +42,27 @@ export default class MessageChain {
      * 返回消息链的Str格式
      * @returns {String}
      */
-    getStr(){
+    getStr(): string{
         let Str = "";
 
-        this.getObj().forEach(element => {
-            
+        this.getObj().forEach(e => {
+            // @ts-ignore
+            switch (e.type) {
+                case "Plain":
+                    Str += e.text;
+                    break;
+                case "At":
+                    Str += e.target;
+                    break;
+            }
         });
 
-        return "";
+        return Str;
+    }
+    /**
+     * @returns {String[]}
+     */
+    getListStr(): string[]{
+        return this.getStr().split(" ");
     }
 }

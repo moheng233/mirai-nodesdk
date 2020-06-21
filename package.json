@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "install": "yarn link",
-    "test": "tsc"
+    "test": "tsc --init",
+    "build": "tsc"
   },
   "license": "MIT",
   "dependencies": {
@@ -14,5 +15,6 @@
     "ws": "^7.3.0"
   },
   "devDependencies": {
+    "typescript": "^3.9.5"
   }
 }

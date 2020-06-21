@@ -1,30 +1,28 @@
-// @ts-check
-
+// @flow
 import fly from "flyio";
-import WebScoket from "ws";
-// const messageChain = require("./messageChain").default;
-import messageChain from "./messageChain";
+// import WebSocket from "ws";
+import WebSocket from "ws";
+import messageChain from "./messageChain.js";
 
 
 /**
  * @class 机器人的基础类
  */
-export default class robot {
+export class robot {
     /** @type {String} */
-    authKey;
+    authKey: String = "";
     /** @type {String} */
-    host;
+    host: String = "";
     /** @type {String} */
-    port;
+    port: String = "";
     /** @type {String} */
-    qq;
+    qq: String = "";
     /** @type {String} */
-    passwd;
+    passwd: String = "";
     /** @type {String} */
-    session;
-    /** @type {WebScoket} */
-    wsMessage;
-    GetInit = false;
+    session: String = "";
+    GetInit= false;
+    wsMessage: WebSocket;
 
     /**
      * 机器人的基础类
@@ -36,7 +34,7 @@ export default class robot {
      * @param {String} config.qq mirai的机器人qq
      * @param {String} config.passwd mirai的机器人密码,为0时不自动登陆,其他即自动登陆
      */
-    constructor (config){
+    constructor (config: { authKey: String; host: String; port: String; qq: String; passwd: String; }){
         this.authKey = config.authKey;
         this.host = config.host;
         this.port = config.port;
@@ -84,7 +82,7 @@ export default class robot {
      * 使用此方法获取插件的信息，如版本号
      * @returns {Promise<Object>} data
      */
-    async about(){
+    async about(): Promise<object>{
         let e = await fly.get("/about");
         return e.data;
     }
@@ -95,14 +93,14 @@ export default class robot {
      * @param {String} authKey mirai的authKey
      * @returns {Promise<T>} mirai返回的session
      */
-    async auth_key(authKey){
+    async auth_key(authKey: String): Promise<String>{
         let e = await fly.post("/auth",{
             "authKey": authKey
         })
         if(e.data.code == 0){
             return e.data.session;
         } else {
-            return null;
+            return "";
         }
     }
     /**
@@ -113,7 +111,7 @@ export default class robot {
      * @param {String} qq 要登录机器人的QQ号
      * @returns {Promise<Number>} 错误代码
      */
-    async verify_session(session,qq){
+    async verify_session(session: String,qq: String): Promise<number>{
         let e = await fly.post("/verify",{
             "sessionKey": session,
             "qq": qq
@@ -130,7 +128,7 @@ export default class robot {
      * 将会导致内存泄露(开启websocket后将不会自动释放)
      * @returns {Promise<Number>}
      */
-    async release_session(){
+    async release_session(): Promise<number>{
         let e = await fly.post("/release",{
             "sessionKey": this.session,
             "qq": this.qq
@@ -145,7 +143,7 @@ export default class robot {
      * @param {Array} args 参数列表
      * @returns {Promise<T>} 返回值
      */
-    async exec_command(command,args){
+    async exec_command<T>(command: String,args: String[]): Promise<T>{
         let e = await fly.post("/command/send",{
             "authKey": this.authKey,
             "name": command,
@@ -163,7 +161,7 @@ export default class robot {
      * @returns {Promise<T>}
      * @example {code: 0, msg: "success", messageId: 403286}
      */
-    async sendFriendMessage(target,quote,message){
+    async sendFriendMessage(target: String,quote: Number,message: messageChain): Promise<Object>{
         let e = await fly.post("/sendFriendMessage",{
             "sessionKey": this.session,
             "target": target,
@@ -178,7 +176,7 @@ export default class robot {
      * @param {Number} quote 引用一条消息的messageId进行回复
      * @param {messageChain} message message 消息链，是一个消息对象构成的数组
      */
-    async sendGroupMessage(target,quote,message){
+    async sendGroupMessage(target: String,quote: Number,message: messageChain): Promise<Object>{
         let e = await fly.post("/sendGroupMessage",{
             "sessionKey": this.session,
             "target": target,
@@ -193,7 +191,7 @@ export default class robot {
      * @param {String} target 需要撤回的消息的messageId
      * @returns {Promise<T>}
      */
-    async recallMessage(target){
+    async recallMessage(target: String): Promise<Object>{
         let e = await fly.post("/recall",{
             "target": target
         })
@@ -202,15 +200,23 @@ export default class robot {
     }
     /**
      * 监听机器人接受到的信息
-     * @returns {Promise<WebScoket>}
      */
-    async initMessage() {
-        const wsMessage = new WebScoket("ws://"+this.host+":"+this.port+"/message?sessionKey="+this.session,"",{});
+    async initMessage(): Promise<WebSocket> {
+        const wsMessage = new WebSocket("ws://"+this.host+":"+this.port+"/message?sessionKey="+this.session,"",{});
 
         wsMessage.on("open",() => {
             console.log("websocket 链接成功");
         });
 
         return wsMessage;
+    }
+
+    /**
+     * @param {CallableFunction} fun
+     */
+    bindMessage(fun: (arg0: Object) => void) {
+        this.wsMessage.on("message",(m: Object) => {
+            fun(m);
+        });
     }
 }
