@@ -1,10 +1,7 @@
-// @ts-check
-const messageChain = require("../src/messageChain");
+const messageChain = require("../build/messageChain");
 
 async function main(){
-    /**
-     * @type {import("../src/messageChain")}
-     */
+
     let m = new messageChain()
         .add_plain("#禁言 ")
         .add_at("1523433122")

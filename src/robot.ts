@@ -8,7 +8,7 @@ import messageChain from "./messageChain.js";
 /**
  * @class 机器人的基础类
  */
-export class robot {
+export default class robot {
     /** @type {String} */
     authKey: String = "";
     /** @type {String} */
@@ -22,7 +22,7 @@ export class robot {
     /** @type {String} */
     session: String = "";
     GetInit= false;
-    wsMessage: WebSocket;
+    wsMessage!: WebSocket;
 
     /**
      * 机器人的基础类
@@ -199,7 +199,7 @@ export class robot {
         return e.data;
     }
     /**
-     * 监听机器人接受到的信息
+     * 初始化消息监听
      */
     async initMessage(): Promise<WebSocket> {
         const wsMessage = new WebSocket("ws://"+this.host+":"+this.port+"/message?sessionKey="+this.session,"",{});
@@ -214,7 +214,7 @@ export class robot {
     /**
      * @param {CallableFunction} fun
      */
-    bindMessage(fun: (arg0: Object) => void) {
+    bindMessage(fun: (m: Object) => void) {
         this.wsMessage.on("message",(m: Object) => {
             fun(m);
         });

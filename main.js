@@ -1,7 +1,7 @@
 // @ts-check
 
-import robot from "./src/robot";
-import messageChain from "./src/messageChain"
+import robot from "./build/robot";
+import messageChain from "./build/messageChain"
 
 export {
     robot,
