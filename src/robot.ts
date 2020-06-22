@@ -165,7 +165,7 @@ export default class robot {
         let e = await fly.post("/sendFriendMessage",{
             "sessionKey": this.session,
             "target": target,
-            "messageChain": message
+            "messageChain": message.getObj()
         })
 
         return e.data;
@@ -177,10 +177,11 @@ export default class robot {
      * @param {messageChain} message message 消息链，是一个消息对象构成的数组
      */
     async sendGroupMessage(target: String,quote: Number,message: messageChain): Promise<Object>{
+        console.log(message.getObj());
         let e = await fly.post("/sendGroupMessage",{
             "sessionKey": this.session,
             "target": target,
-            "messageChain": message
+            "messageChain": message.getObj()
         })
 
         return e.data;

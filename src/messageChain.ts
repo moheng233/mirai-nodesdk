@@ -1,12 +1,19 @@
 export default class MessageChain {
 
-    message_chain: { type: String; text?: String; target?: String; }[] = [];
+    message_chain: any = [];
 
     /**
      * 一个消息链对象
      */
     constructor(){
     }
+
+    fromJson(Json: string): MessageChain{
+        this.message_chain = JSON.parse(Json).messageChain;
+
+        return this;
+    }
+
     /**
      * 添加行文字
      * @param {String} text 要发送的文字
@@ -45,7 +52,7 @@ export default class MessageChain {
     getStr(): string{
         let Str = "";
 
-        this.getObj().forEach(e => {
+        this.getObj().forEach((e: any) => {
             // @ts-ignore
             switch (e.type) {
                 case "Plain":

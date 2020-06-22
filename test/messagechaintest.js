@@ -1,10 +1,10 @@
-const messageChain = require("../build/messageChain");
+const MessageChain = require("../build/messageChain").default;
 
 async function main(){
 
-    let m = new messageChain()
+    let m = new MessageChain()
         .add_plain("#禁言 ")
-        .add_at("1523433122")
+        .add_at("1523433122");
 
 
     console.log(m.getStr());

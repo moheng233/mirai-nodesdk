@@ -1,49 +1,53 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var MessageChain = /** @class */ (function () {
+class MessageChain {
     /**
      * 一个消息链对象
      */
-    function MessageChain() {
+    constructor() {
         this.message_chain = [];
+    }
+    fromJson(Json) {
+        this.message_chain = JSON.parse(Json).messageChain;
+        return this;
     }
     /**
      * 添加行文字
      * @param {String} text 要发送的文字
      * @returns {MessageChain}
      */
-    MessageChain.prototype.add_plain = function (text) {
+    add_plain(text) {
         this.message_chain.push({
             "type": "Plain",
             "text": text
         });
         return this;
-    };
+    }
     /**
      * At一个人
      * @param {String} target 要At人的QQ号
      * @returns {MessageChain}
      */
-    MessageChain.prototype.add_at = function (target) {
+    add_at(target) {
         this.message_chain.push({
             "type": "At",
             "target": target
         });
         return this;
-    };
+    }
     /**
      * 返回消息链的obj格式
      */
-    MessageChain.prototype.getObj = function () {
+    getObj() {
         return this.message_chain;
-    };
+    }
     /**
      * 返回消息链的Str格式
      * @returns {String}
      */
-    MessageChain.prototype.getStr = function () {
-        var Str = "";
-        this.getObj().forEach(function (e) {
+    getStr() {
+        let Str = "";
+        this.getObj().forEach((e) => {
             // @ts-ignore
             switch (e.type) {
                 case "Plain":
@@ -55,13 +59,12 @@ var MessageChain = /** @class */ (function () {
             }
         });
         return Str;
-    };
+    }
     /**
      * @returns {String[]}
      */
-    MessageChain.prototype.getListStr = function () {
+    getListStr() {
         return this.getStr().split(" ");
-    };
-    return MessageChain;
-}());
+    }
+}
 exports.default = MessageChain;
