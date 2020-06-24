@@ -1,4 +1,4 @@
-const MessageChain = require("../../build/messageChain").default;
+import MessageChain from "../messageChain";
 
 async function main(){
 

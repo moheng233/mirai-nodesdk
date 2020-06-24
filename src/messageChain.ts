@@ -1,6 +1,13 @@
+interface Imessagechainarray {
+    type: String,
+    text?: String,
+    target?: String
+}
+
+
 export default class MessageChain {
 
-    message_chain: any = [];
+    message_chain: Array<Imessagechainarray> = [];
 
     /**
      * 一个消息链对象
@@ -13,7 +20,7 @@ export default class MessageChain {
 
         return this;
     }
-    fromObj(Obj: Object): MessageChain{
+    fromObj(Obj: Array<Imessagechainarray>): MessageChain{
         this.message_chain = Obj;
         
         return this;

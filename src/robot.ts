@@ -214,7 +214,7 @@ export default class robot {
                 let message = new messageChain().fromObj(m["messageChain"]);
 
                 if(message.getStr()[0] == this.commandSymbol){
-                    robotEvent.object.emit("command",m,message);
+                    robotEvent.object.emit("command",this,m,message);
                 }
             })
             // robotEvent.object.emit("message", )
