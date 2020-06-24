@@ -2,6 +2,7 @@
 import fly from "flyio";
 // import WebSocket from "ws";
 import WebSocket from "ws";
+import robotEvent from "./robotEvent";
 import messageChain from "./messageChain.js";
 
 
@@ -209,15 +210,10 @@ export default class robot {
             console.log("websocket 链接成功");
         });
 
-        return wsMessage;
-    }
+        wsMessage.on("message", (e) => {
+            robotEvent.object.emit("message", JSON.stringify(e));
+        })
 
-    /**
-     * @param {CallableFunction} fun
-     */
-    bindMessage(fun: (m: Object) => void) {
-        this.wsMessage.on("message",(m: Object) => {
-            fun(m);
-        });
+        return wsMessage;
     }
 }
