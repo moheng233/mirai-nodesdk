@@ -1,4 +1,4 @@
-const MessageChain = require("../build/messageChain").default;
+const MessageChain = require("../../build/messageChain").default;
 
 async function main(){
 

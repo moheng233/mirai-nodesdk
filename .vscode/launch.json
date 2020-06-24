@@ -11,10 +11,11 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}\\test\\test1.js",
+            "program": "${workspaceFolder}\\build\\test\\test1.js",
             "outFiles": [
-                "${workspaceFolder}/**/*.js"
-            ]
+                "${workspaceFolder}/build/*.js"
+            ],
+            "sourceMaps": true
         }
     ]
 }

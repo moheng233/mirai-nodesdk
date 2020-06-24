@@ -13,6 +13,11 @@ export default class MessageChain {
 
         return this;
     }
+    fromObj(Obj: Object): MessageChain{
+        this.message_chain = Obj;
+        
+        return this;
+    }
 
     /**
      * 添加行文字

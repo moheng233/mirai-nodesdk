@@ -3,25 +3,21 @@ import fly from "flyio";
 // import WebSocket from "ws";
 import WebSocket from "ws";
 import robotEvent from "./robotEvent";
-import messageChain from "./messageChain.js";
+import messageChain from "./messageChain";
+import {messageDataStringify as jsonSchema} from "./jsonSchema";
 
 
 /**
  * @class 机器人的基础类
  */
 export default class robot {
-    /** @type {String} */
     authKey: String = "";
-    /** @type {String} */
     host: String = "";
-    /** @type {String} */
     port: String = "";
-    /** @type {String} */
     qq: String = "";
-    /** @type {String} */
     passwd: String = "";
-    /** @type {String} */
     session: String = "";
+    commandSymbol: String = "#";
     GetInit= false;
     wsMessage!: WebSocket;
 
@@ -35,12 +31,14 @@ export default class robot {
      * @param {String} config.qq mirai的机器人qq
      * @param {String} config.passwd mirai的机器人密码,为0时不自动登陆,其他即自动登陆
      */
-    constructor (config: { authKey: String; host: String; port: String; qq: String; passwd: String; }){
+    constructor (config: { authKey: String; host: String; port: String; qq?: String; passwd?: String; }){
         this.authKey = config.authKey;
         this.host = config.host;
         this.port = config.port;
-        this.qq = config.qq;
-        this.passwd = config.passwd;
+        // this.qq = config.qq;
+        config.qq != undefined ? this.qq = config.qq:"";
+        // this.passwd = config.passwd;
+        config.passwd != undefined ? this.passwd = config.passwd: "";
         fly.config.baseURL = "http://"+this.host+":"+this.port;
 
     }
@@ -211,7 +209,15 @@ export default class robot {
         });
 
         wsMessage.on("message", (e) => {
-            robotEvent.object.emit("message", JSON.stringify(e));
+            robotEvent.object.emit("message", JSON.parse(<string>e));
+            robotEvent.object.on("message", (m: any) => {
+                let message = new messageChain().fromObj(m["messageChain"]);
+
+                if(message.getStr()[0] == this.commandSymbol){
+                    robotEvent.object.emit("command",m,message);
+                }
+            })
+            // robotEvent.object.emit("message", )
         })
 
         return wsMessage;
