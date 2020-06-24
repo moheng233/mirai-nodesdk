@@ -19,6 +19,7 @@ async function main(){
 
     // let message = await ROBOT.sendGroupMessage("790172839",0,new MessageChain().add_at("1523433122").add_plain("你妈的，为什么！"));
 
+    let NIMADE = new nimade();
 
     process.on("SIGINT", async ()=> {
         console.log(await ROBOT.release_session());
@@ -33,10 +34,12 @@ class nimade extends commandProcessor {
     constructor(){
         super();
 
+        this.title = "你妈的";
+
         this.groundList.push({
             title: "help",
             fun: async (ROBOT,m,message) => {
-                ROBOT.sendGroupMessage(<string>m["sender"]["group"]["id"],0,new MessageChain().add_at)
+                ROBOT.sendGroupMessage(<string>m["sender"]["group"]["id"],0,new MessageChain().add_plain("233"))
             }
         })
     }

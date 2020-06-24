@@ -6,7 +6,8 @@
   "scripts": {
     "install": "yarn link",
     "test": "tsc --init",
-    "build": "tsc"
+    "build": "tsc",
+    "build:w": "tsc -w"
   },
   "license": "MIT",
   "dependencies": {

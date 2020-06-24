@@ -4,7 +4,7 @@ import robotEvent from "./robotEvent";
 
 interface groundlist {
     title: String,
-    fun: (ROBOT: robot,m: Object,message: messageChain) => Promise<void>
+    fun: (ROBOT: robot,m: any,message: messageChain) => Promise<void>
 }
 
 /**
@@ -30,7 +30,7 @@ export default class commandProcessor {
 
         this.groundList.forEach(async (v,i) => {
             if(v.title == ms[1]) {
-                await v.fun(ROBOT,m,new messageChain);
+                v.fun(ROBOT,m,new messageChain);
             }
         })
     }
