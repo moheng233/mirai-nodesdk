@@ -4,6 +4,7 @@ const { default: MessageChain } = require("../build/messageChain");
 
 const robot = require("../build/robot").default;
 const messageChain = require("../build/messageChain").default;
+const 
 
 async function main(){
     let ROBOT = new robot({
@@ -19,17 +20,7 @@ async function main(){
     let message = await ROBOT.sendGroupMessage("790172839",0,new messageChain().add_at("1523433122").add_plain("你妈的，为什么！"));
     // await ROBOT.recallMessage(message.messageId);
 
-    ROBOT.bindMessage(async (e) => {
-        // @ts-ignore
-        console.log(new MessageChain().fromJson(e).getStr());
-        console.log(e);
-        // @ts-ignore
-        let eo = JSON.parse(e);
-        // @ts-ignore
-        if(new MessageChain().fromJson(e).getStr() == "#你妈的") {
-            await ROBOT.sendGroupMessage(eo["sender"]["group"]["id"],0,new messageChain().add_at(eo["sender"]["id"]).add_plain("你妈的！"));
-        }
-    });
+    
 
     console.log(await ROBOT.release_session());
 }
