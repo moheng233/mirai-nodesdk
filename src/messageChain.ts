@@ -1,13 +1,8 @@
-interface Imessagechainarray {
-    type: String,
-    text?: String,
-    target?: String
-}
-
+import { ImessageChain } from "./messageObject";
 
 export default class MessageChain {
 
-    message_chain: Array<Imessagechainarray> = [];
+    message_chain: ImessageChain[] = [];
 
     /**
      * 一个消息链对象
@@ -20,10 +15,18 @@ export default class MessageChain {
 
         return this;
     }
-    fromObj(Obj: Array<Imessagechainarray>): MessageChain{
+    fromObj(Obj: ImessageChain[]): MessageChain{
         this.message_chain = Obj;
         
         return this;
+    }
+
+    isCommand(commandSymbol: String): Boolean{
+        return (this.getStr()[0] == commandSymbol)
+    }
+
+    get CommandArg(){
+        return this.getListStr()
     }
 
     /**
@@ -64,7 +67,7 @@ export default class MessageChain {
     getStr(): string{
         let Str = "";
 
-        this.getObj().forEach((e: any) => {
+        this.getObj().forEach((e) => {
             // @ts-ignore
             switch (e.type) {
                 case "Plain":
@@ -76,12 +79,11 @@ export default class MessageChain {
             }
         });
 
-        return Str;
+        return Str.trim();
     }
     /**
-     * @returns {String[]}
      */
     getListStr(): string[]{
-        return this.getStr().split(" ");
+        return this.getStr().replace("#","").split(" ");
     }
 }

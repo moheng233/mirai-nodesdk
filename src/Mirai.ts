@@ -2,15 +2,16 @@
 import fly from "flyio";
 // import WebSocket from "ws";
 import WebSocket from "ws";
-import robotEvent from "./robotEvent";
 import messageChain from "./messageChain";
-import {messageDataStringify as jsonSchema} from "./jsonSchema";
-
+import { EventEmitter } from "events";
+import { ImessageObject } from "./messageObject";
+import { commandProcessor } from "./commandProcessor";
+import { IregistCommands } from "./registCommands";
 
 /**
- * @class 机器人的基础类
+ * 机器人的基础类
  */
-export default class robot {
+export default class Mirai extends EventEmitter implements IregistCommands {
     authKey: String = "";
     host: String = "";
     port: String = "";
@@ -21,65 +22,81 @@ export default class robot {
     GetInit= false;
     wsMessage!: WebSocket;
 
+    commandList: commandProcessor[] = [];
+
+    
+
     /**
      * 机器人的基础类
      * 所有的东西都在这里了
-     * @param {Object} config  config设置对象
-     * @param {String} config.authKey mirai的AuthKEY
-     * @param {String} config.host mirai的主机地址
-     * @param {String} config.port mirai的主机端口
-     * @param {String} config.qq mirai的机器人qq
-     * @param {String} config.passwd mirai的机器人密码,为0时不自动登陆,其他即自动登陆
      */
     constructor (config: { authKey: String; host: String; port: String; qq?: String; passwd?: String; }){
+        super();
+
         this.authKey = config.authKey;
         this.host = config.host;
         this.port = config.port;
-        // this.qq = config.qq;
         config.qq != undefined ? this.qq = config.qq:"";
-        // this.passwd = config.passwd;
         config.passwd != undefined ? this.passwd = config.passwd: "";
+
         fly.config.baseURL = "http://"+this.host+":"+this.port;
 
+        this.once("init",async () => {
+            this.about().then(async (r) => {
+                this.auth_key(this.authKey).then(async (session) => {
+                    if( session != null){
+                        this.session = session;
+                    } else {
+                        throw {
+                            code: "0010",
+                            mag: "authKey 相关错误"
+                        };
+                    }
+
+                    this.verify_session(this.session,this.qq).then(async (e) => {
+                        if( e != 0){
+                            return e;
+                        }
+
+                        this.once("wsinited",(ws: WebSocket) => {
+                            this.wsMessage = ws;
+
+                            this.GetInit = true;
+
+                            this.emit("inited",this);
+                        })
+
+                        this.initMessage()
+                    });
+                });
+            }).catch(err => {
+                console.error(err);
+            });
+        })
+
+        this.emit("init");
+
     }
-    /**
-     * 初始化，必须！
-     */
-    async init () {
-        let r = await this.about();
 
-        let session = await this.auth_key(this.authKey);
-        if( session != null){
-            this.session = session;
-        } else {
-            return {
-                code: "0010",
-                mag: "authKey 相关错误"
-            };
-        }
+    registCommand<M extends commandProcessor>(cp: M): Mirai {
+        this.commandList.push(cp);
 
-        // if( this.passwd != 0) {
-        //     let e = await this.exec_command("login",[this.qq,this.passwd]);
-        //     console.log(e);
-        // }
-
-        let e = await this.verify_session(this.session,this.qq);
-        if( e != 0){
-            return e;
-        }
-
-        this.wsMessage = await this.initMessage();
-        
-        this.GetInit = true;
-        return {
-            "code": "0000"
-        };
+        return this;
     }
+
+    execCommand(m: ImessageObject,message: messageChain){
+        this.commandList.forEach((cp: commandProcessor) => {
+            if(cp.getcase(0,this,m,message)){
+                cp.exec(0,this,m,message);
+            }
+        })
+    }
+
+    
 
     /**
      * 尝试获得mirai服务器的基础信息
      * 使用此方法获取插件的信息，如版本号
-     * @returns {Promise<Object>} data
      */
     async about(): Promise<object>{
         let e = await fly.get("/about");
@@ -88,9 +105,6 @@ export default class robot {
     /**
      * 向mirai服务端验证authkey
      * 使用此方法验证你的身份，并返回一个会话
-     * @template T
-     * @param {String} authKey mirai的authKey
-     * @returns {Promise<T>} mirai返回的session
      */
     async auth_key(authKey: String): Promise<String>{
         let e = await fly.post("/auth",{
@@ -106,9 +120,6 @@ export default class robot {
      * 向服务器验证session
      * 使用此方法校验并激活你的Session，
      * 同时将Session与一个已登录的Bot绑定
-     * @param {String} session mirai的session
-     * @param {String} qq 要登录机器人的QQ号
-     * @returns {Promise<Number>} 错误代码
      */
     async verify_session(session: String,qq: String): Promise<number>{
         let e = await fly.post("/verify",{
@@ -125,7 +136,6 @@ export default class robot {
      * 长时间（30分钟）未使用的Session将自动释放，
      * 否则Session持续保存Bot收到的消息，
      * 将会导致内存泄露(开启websocket后将不会自动释放)
-     * @returns {Promise<Number>}
      */
     async release_session(): Promise<number>{
         let e = await fly.post("/release",{
@@ -153,12 +163,6 @@ export default class robot {
     }
     /**
      * 使用此方法向指定好友发送消息
-     * @template T
-     * @param {String} target 发送消息目标好友的QQ号
-     * @param {Number} quote 引用一条消息的messageId进行回复
-     * @param {messageChain} message 消息链，是一个消息对象构成的数组
-     * @returns {Promise<T>}
-     * @example {code: 0, msg: "success", messageId: 403286}
      */
     async sendFriendMessage(target: String,quote: Number,message: messageChain): Promise<Object>{
         let e = await fly.post("/sendFriendMessage",{
@@ -171,15 +175,13 @@ export default class robot {
     }
     /**
      * 使用此方法向指定群发送消息
-     * @param {String} target 发送消息目标好友的QQ号
-     * @param {Number} quote 引用一条消息的messageId进行回复
-     * @param {messageChain} message message 消息链，是一个消息对象构成的数组
      */
-    async sendGroupMessage(target: String,quote: Number,message: messageChain): Promise<Object>{
+    async sendGroupMessage(target: String,message: messageChain,quote?: Number,): Promise<Object>{
         console.log(message.getObj());
         let e = await fly.post("/sendGroupMessage",{
             "sessionKey": this.session,
             "target": target,
+            "quote": quote,
             "messageChain": message.getObj()
         })
 
@@ -187,9 +189,6 @@ export default class robot {
     }
     /**
      * 使用此方法撤回指定消息。对于bot发送的消息，有2分钟时间限制。对于撤回群聊中群员的消息，需要有相应权限请求
-     * @template T
-     * @param {String} target 需要撤回的消息的messageId
-     * @returns {Promise<T>}
      */
     async recallMessage(target: String): Promise<Object>{
         let e = await fly.post("/recall",{
@@ -205,19 +204,20 @@ export default class robot {
         const wsMessage = new WebSocket("ws://"+this.host+":"+this.port+"/message?sessionKey="+this.session,"",{});
 
         wsMessage.on("open",() => {
+            this.emit("wsinited",wsMessage);
+
             console.log("websocket 链接成功");
         });
 
         wsMessage.on("message", (e) => {
-            robotEvent.object.emit("message", JSON.parse(<string>e));
-            robotEvent.object.on("message", (m: any) => {
-                let message = new messageChain().fromObj(m["messageChain"]);
+            this.emit("message", <ImessageObject>JSON.parse(<string>e));
+            this.on("message", (m: ImessageObject) => {
+                let message = new messageChain().fromObj(m.messageChain ?? []);
 
                 if(message.getStr()[0] == this.commandSymbol){
-                    robotEvent.object.emit("command",this,m,message);
+                    this.execCommand(m,message);
                 }
             })
-            // robotEvent.object.emit("message", )
         })
 
         return wsMessage;

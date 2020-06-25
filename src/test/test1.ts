@@ -2,24 +2,27 @@
 
 import MessageChain from "../messageChain";
 
-import robot from "../robot";
-import robotEvent from "../robotEvent";
-import commandProcessor from "../commandGroud";
+import Mirai from "../Mirai";
+import { ImessageObject } from "../messageObject";
 
 async function main(){
-    let ROBOT = new robot({
-        authKey: "INITKEYT0h5dLxX",
+    let ROBOT = new Mirai({
+        authKey: "INITKEY40Yvy5Ef",
         qq: "3453563382",
         passwd: "momeng1055",
         host: "127.0.0.1",
         port: "8888"
     });
 
-    console.log(await ROBOT.init());
-
     // let message = await ROBOT.sendGroupMessage("790172839",0,new MessageChain().add_at("1523433122").add_plain("你妈的，为什么！"));
 
-    let NIMADE = new nimade();
+    ROBOT.once("inited", (ROBOT: Mirai) => {
+        console.log(ROBOT.GetInit);
+    })
+
+    ROBOT.on("message",(m:ImessageObject) => {
+        console.log(new MessageChain().fromObj(m.messageChain ?? []).getStr());
+    })
 
     process.on("SIGINT", async ()=> {
         console.log(await ROBOT.release_session());
@@ -28,21 +31,6 @@ async function main(){
     })
 
     return ROBOT;
-}
-
-class nimade extends commandProcessor {
-    constructor(){
-        super();
-
-        this.title = "你妈的";
-
-        this.groundList.push({
-            title: "help",
-            fun: async (ROBOT,m,message) => {
-                ROBOT.sendGroupMessage(<string>m["sender"]["group"]["id"],0,new MessageChain().add_plain("233"))
-            }
-        })
-    }
 }
 
 main()

@@ -5,9 +5,10 @@
   "main": "main.js",
   "scripts": {
     "install": "yarn link",
-    "test": "tsc --init",
+    "test": "node ./build/test/test1.js",
     "build": "tsc",
-    "build:w": "tsc -w"
+    "build:w": "tsc -w",
+    "build:c": "rm -r .\\build\\*"
   },
   "license": "MIT",
   "dependencies": {
