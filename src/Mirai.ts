@@ -91,7 +91,7 @@ export default class Mirai extends EventEmitter implements IregistCommands {
                     if(Mc.CommandArg.length === 2){
                         for (let e of R.commandList) {
                             if(e.title === Mc.CommandArg[1]){
-                                str += `#${e.title}  ${e.help} \n`;
+                                str += `#${e.title}\n  ${e.help} \n`;
 
                                 break;
                             }
@@ -104,6 +104,7 @@ export default class Mirai extends EventEmitter implements IregistCommands {
                     
                     let sendpid = M.sender?.id != undefined ? M.sender?.id: "" ;
                     let sendgid = M.sender?.group?.id != undefined ? M.sender?.group?.id: "";
+                    
                     let mid = Mc.getObj()[0].id;
                     let mct = new messageChain().add_plain(str);
 
@@ -114,11 +115,6 @@ export default class Mirai extends EventEmitter implements IregistCommands {
             
                         await R.sendGroupMessage(sendgid, mct, mid);
                     }
-
-                    mct.add_plain(str);
-
-                    
-
                     return true;
                 }
             })
@@ -271,14 +267,14 @@ export default class Mirai extends EventEmitter implements IregistCommands {
         }
 
         if(quote != undefined){
-            o["quote"] == quote;
+            o["quote"] = quote;
         }
 
         let e = await fly.post("/sendGroupMessage",o)
 
         return e.data;
     }
-    
+
     /**
      * 使用此方法撤回指定消息。对于bot发送的消息，有2分钟时间限制。对于撤回群聊中群员的消息，需要有相应权限请求
      */

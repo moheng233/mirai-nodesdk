@@ -1,4 +1,3 @@
-import {commandProcessor} from "./commandProcessor";
 import Mirai from "./Mirai";
 import { ImessageObject } from "./messageObject";
 import messageChain from "./messageChain";

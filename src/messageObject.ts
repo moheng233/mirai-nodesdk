@@ -1,17 +1,7 @@
 
 export interface ImessageObject {
-    "type": "GroupMessage" | "FriendMessage" | "TempMessage" |
-        "BotOnlineEvent" | "BotOfflineEventForce" | "BotOfflineEventDropped" | "BotReloginEvent" |
-        "GroupRecallEvent" | "FriendRecallEvent" |
-        "BotGroupPermissionChangeEvent" | "BotMuteEvent" | "BotUnmuteEvent" | "GroupMuteAllEvent" |
-        "BotJoinGroupEvent" | "BotLeaveEventActive" | "BotLeaveEventKick" |
-        "GroupNameChangeEvent" | "GroupEntranceAnnouncementChangeEvent" |
-        "GroupAllowAnonymousChatEvent" | "GroupAllowConfessTalkEvent" |
-        "GroupAllowMemberInviteEvent" | "MemberJoinEvent" |
-        "MemberLeaveEventKick" | "MemberLeaveEventQuit" | "MemberCardChangeEvent" |
-        "MemberSpecialTitleChangeEvent" | "MemberPermissionChangeEvent" | "MemberMuteEvent" | "MemberUnmuteEvent" |
-        "NewFriendRequestEvent" | "MemberJoinRequestEvent" | "BotInvitedJoinGroupRequestEvent" |
-        String,
+    "type": "GroupMessage" | "FriendMessage" | "TempMessage" | "Auto" ,
+        
     "messageChain"?: ImessageChain[],
     "sender"?: {
         "id": String,
@@ -22,7 +12,20 @@ export interface ImessageObject {
             "name": String,
             "permission": "OWNER" | "ADMINISTRATOR" | "MEMBER"
         }
-    },
+    }
+}
+
+export interface IEventObject {
+    "type": "BotOnlineEvent" | "BotOfflineEventForce" | "BotOfflineEventDropped" | "BotReloginEvent" |
+    "GroupRecallEvent" | "FriendRecallEvent" |
+    "BotGroupPermissionChangeEvent" | "BotMuteEvent" | "BotUnmuteEvent" | "GroupMuteAllEvent" |
+    "BotJoinGroupEvent" | "BotLeaveEventActive" | "BotLeaveEventKick" |
+    "GroupNameChangeEvent" | "GroupEntranceAnnouncementChangeEvent" |
+    "GroupAllowAnonymousChatEvent" | "GroupAllowConfessTalkEvent" |
+    "GroupAllowMemberInviteEvent" | "MemberJoinEvent" |
+    "MemberLeaveEventKick" | "MemberLeaveEventQuit" | "MemberCardChangeEvent" |
+    "MemberSpecialTitleChangeEvent" | "MemberPermissionChangeEvent" | "MemberMuteEvent" | "MemberUnmuteEvent" |
+    "NewFriendRequestEvent" | "MemberJoinRequestEvent" | "BotInvitedJoinGroupRequestEvent",
     "eventId"?: String,
     "fromId"?: String,
     "groupId"?: String,
