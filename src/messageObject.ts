@@ -17,7 +17,7 @@ export interface ImessageObject {
         "id": String,
         "memberName": String,
         "permission": "OWNER" | "ADMINISTRATOR" | "MEMBER",
-        "group": {
+        "group"?: {
             "id": String,
             "name": String,
             "permission": "OWNER" | "ADMINISTRATOR" | "MEMBER"

@@ -26,7 +26,7 @@ export default class MessageChain {
     }
 
     get CommandArg(){
-        return this.getListStr()
+        return this.getArgStr()
     }
 
     /**
@@ -46,7 +46,7 @@ export default class MessageChain {
      * @param {String} target 要At人的QQ号
      * @returns {MessageChain}
      */
-    add_at(target: string): MessageChain{
+    add_at(target: String): MessageChain{
         this.message_chain.push({
             "type": "At",
             "target": target
@@ -83,7 +83,7 @@ export default class MessageChain {
     }
     /**
      */
-    getListStr(): string[]{
-        return this.getStr().replace("#","").split(" ");
+    getArgStr(): string[]{
+        return this.getStr().split(" ");
     }
 }

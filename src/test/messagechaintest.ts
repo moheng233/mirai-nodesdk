@@ -8,7 +8,7 @@ async function main(){
 
 
     console.log(m.getStr());
-    console.log(m.getListStr());
+    console.log(m.getArgStr());
 }
 
 main();

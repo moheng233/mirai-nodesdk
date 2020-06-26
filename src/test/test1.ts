@@ -4,6 +4,7 @@ import MessageChain from "../messageChain";
 
 import Mirai from "../Mirai";
 import { ImessageObject } from "../messageObject";
+import { commandProcessor } from "../commandProcessor";
 
 async function main(){
     let ROBOT = new Mirai({

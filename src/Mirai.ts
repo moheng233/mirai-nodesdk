@@ -5,8 +5,7 @@ import WebSocket from "ws";
 import messageChain from "./messageChain";
 import { EventEmitter } from "events";
 import { ImessageObject } from "./messageObject";
-import { commandProcessor } from "./commandProcessor";
-import { IregistCommands } from "./registCommands";
+import { IregistCommands, ICommand } from "./registCommands";
 
 /**
  * 机器人的基础类
@@ -18,13 +17,12 @@ export default class Mirai extends EventEmitter implements IregistCommands {
     qq: String = "";
     passwd: String = "";
     session: String = "";
-    commandSymbol: String = "#";
+    commandSymbol = "#";
     GetInit= false;
     wsMessage!: WebSocket;
 
-    commandList: commandProcessor[] = [];
+    commandList: ICommand[] = [];
 
-    
 
     /**
      * 机器人的基础类
@@ -74,22 +72,94 @@ export default class Mirai extends EventEmitter implements IregistCommands {
             });
         })
 
+        this.on("inited",(ROBOT: Mirai) => {
+            this.on("message", (m: ImessageObject) => {
+                let message = new messageChain().fromObj(m.messageChain ?? []);
+    
+                if(message.getStr()[0] == this.commandSymbol){
+                    this.execCommand(m,message);
+                }
+            })
+
+
+            ROBOT.registCommand({
+                title: "帮助",
+                help: "输出指令的帮助 #帮助 [command]",
+                exec: async function (R: Mirai,M: ImessageObject,Mc: messageChain): Promise<Boolean>{
+                    let str = "\n";
+
+                    if(Mc.CommandArg.length === 2){
+                        for (let e of R.commandList) {
+                            if(e.title === Mc.CommandArg[1]){
+                                str += `#${e.title}  ${e.help} \n`;
+
+                                break;
+                            }
+                        }
+                    } else {
+                        R.commandList.forEach(e => {
+                            str += `#${e.title}  ${e.help} \n`;
+                        });
+                    }
+                    
+                    let sendpid = M.sender?.id != undefined ? M.sender?.id: "" ;
+                    let sendgid = M.sender?.group?.id != undefined ? M.sender?.group?.id: "";
+                    let mid = Mc.getObj()[0].id;
+                    let mct = new messageChain().add_plain(str);
+
+                    if(M.type === "FriendMessage") {
+
+                        await R.sendFriendMessage(sendpid, mct, mid);
+                    } else if(M.type === "GroupMessage") {
+            
+                        await R.sendGroupMessage(sendgid, mct, mid);
+                    }
+
+                    mct.add_plain(str);
+
+                    
+
+                    return true;
+                }
+            })
+        });
+
         this.emit("init");
 
     }
 
-    registCommand<M extends commandProcessor>(cp: M): Mirai {
+    on(event: "init", listener: () => void): this;
+    on(event: "inited", listener: (ROBOT: Mirai) => void): this;
+    on(event: "wsinited", listener: (ws: WebSocket) => void): this;
+    on(event: "message", listener: (m:ImessageObject) => void): this;
+    on(event: string | symbol, listener: (...args: any[]) => void){
+        return super.on(event,listener);
+    }
+
+    emit(event: "init"): boolean;
+    emit(event: "inited", ROBOT: Mirai): boolean;
+    emit(event: "wsinited", ws: WebSocket): boolean;
+    emit(event: "message", m:ImessageObject): boolean;
+    emit(event: string | symbol, ...args: any[]): boolean{
+        return super.emit(event, ...args);
+    }
+
+    registCommand(cp: ICommand): Mirai {
         this.commandList.push(cp);
 
         return this;
     }
 
     execCommand(m: ImessageObject,message: messageChain){
-        this.commandList.forEach((cp: commandProcessor) => {
-            if(cp.getcase(0,this,m,message)){
-                cp.exec(0,this,m,message);
+        for (const e of this.commandList) {
+            if((this.commandSymbol + e.title) === message.CommandArg[0]){
+                e.exec(this,m,message).catch((err) => {
+                    console.error(err);
+                });
+
+                break;
             }
-        })
+        }
     }
 
     
@@ -161,32 +231,54 @@ export default class Mirai extends EventEmitter implements IregistCommands {
 
         return e.data;
     }
+
+    async sendMessage(type: "FriendMessage" | "GroupMessage", target: String, message: messageChain, quote?: String){
+        if(type === "FriendMessage") {
+
+            await this.sendFriendMessage(target, message, quote);
+        } else if(type === "GroupMessage") {
+
+            await this.sendGroupMessage(target, message, quote);
+        }
+    }
+
+
     /**
      * 使用此方法向指定好友发送消息
      */
-    async sendFriendMessage(target: String,quote: Number,message: messageChain): Promise<Object>{
-        let e = await fly.post("/sendFriendMessage",{
+    async sendFriendMessage(target: String,message: messageChain,quote?: String): Promise<Object>{
+        let o:any = {
             "sessionKey": this.session,
             "target": target,
             "messageChain": message.getObj()
-        })
+        }
+        if(quote != undefined){
+            o["quote"] = quote;
+        }
+
+        let e = await fly.post("/sendFriendMessage",o)
 
         return e.data;
     }
     /**
      * 使用此方法向指定群发送消息
      */
-    async sendGroupMessage(target: String,message: messageChain,quote?: Number,): Promise<Object>{
-        console.log(message.getObj());
-        let e = await fly.post("/sendGroupMessage",{
+    async sendGroupMessage(target: String,message: messageChain,quote?: String,): Promise<Object>{
+        let o:any = {
             "sessionKey": this.session,
             "target": target,
-            "quote": quote,
             "messageChain": message.getObj()
-        })
+        }
+
+        if(quote != undefined){
+            o["quote"] == quote;
+        }
+
+        let e = await fly.post("/sendGroupMessage",o)
 
         return e.data;
     }
+    
     /**
      * 使用此方法撤回指定消息。对于bot发送的消息，有2分钟时间限制。对于撤回群聊中群员的消息，需要有相应权限请求
      */
@@ -211,13 +303,6 @@ export default class Mirai extends EventEmitter implements IregistCommands {
 
         wsMessage.on("message", (e) => {
             this.emit("message", <ImessageObject>JSON.parse(<string>e));
-            this.on("message", (m: ImessageObject) => {
-                let message = new messageChain().fromObj(m.messageChain ?? []);
-
-                if(message.getStr()[0] == this.commandSymbol){
-                    this.execCommand(m,message);
-                }
-            })
         })
 
         return wsMessage;
