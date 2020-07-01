@@ -2,8 +2,8 @@
 export interface ImessageObject {
     "type": "GroupMessage" | "FriendMessage" | "TempMessage" | "Auto" ,
         
-    "messageChain"?: ImessageChain[],
-    "sender"?: {
+    "messageChain": ImessageChain[],
+    "sender": {
         "id": String,
         "memberName": String,
         "permission": "OWNER" | "ADMINISTRATOR" | "MEMBER",
@@ -85,4 +85,23 @@ export interface ImessageChain {
     "url"?: String,
     "path"?: String,
     "origin"?: ImessageChain[]
+}
+
+export interface IGroud {
+    "id": String,
+    "name": String,
+    "permission": "OWNER" | "ADMINISTRATOR" | "MEMBER"
+}
+
+export interface IGroudP {
+    "id": String,
+    "memberName": String,
+    "permission":"OWNER" | "ADMINISTRATOR" | "MEMBER",
+    "group": IGroud
+}
+
+export interface IFirend {
+    "id": String,
+    "nickname": String,
+    "remark": String
 }

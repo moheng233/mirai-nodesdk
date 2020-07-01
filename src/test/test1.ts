@@ -1,9 +1,6 @@
-// @ts-check
-
-import MessageChain from "../messageChain";
-
 import Mirai from "../Mirai";
 import { ImessageObject } from "../messageObject";
+import { getPid, getGid, getArg, getStr } from "../tool";
 
 async function main(){
     let ROBOT = new Mirai({
@@ -21,29 +18,25 @@ async function main(){
     })
 
     ROBOT.registCommand({
-        title: "墨尘是不是傻逼",
-        help: "回答墨尘是不是傻逼",
-        exec: async (R: Mirai, M: ImessageObject, Mc: MessageChain):Promise<Boolean> => {
-            let sendpid = M.sender?.id != undefined ? M.sender?.id: "" ;
-            let sendgid = M.sender?.group?.id != undefined ? M.sender?.group?.id: "";
+        title: "#禁言",
+        help: "禁言某人",
+        exec: async (R: Mirai, M: ImessageObject):Promise<Boolean> => {
+            let arg = getArg(M.messageChain);
+            let sendpid = getPid(M);
+            let sendgid = getGid(M);
             
-            let mid = Mc.getObj()[0].id;
-            let mct = new MessageChain().add_plain("不是，墨恒是个傻逼");
+            let mid = M.messageChain[0].id;
+        
+            if(arg.length >= 2) {
 
-            if(M.type === "FriendMessage") {
-
-                await R.sendFriendMessage(sendpid, mct, mid);
-            } else if(M.type === "GroupMessage") {
-    
-                await R.sendGroupMessage(sendgid, mct, mid);
-            }
+            } 
 
             return true;
         }
     });
 
     ROBOT.on("message",(m:ImessageObject) => {
-        console.log(new MessageChain().fromObj(m.messageChain ?? []).getStr());
+        console.log(getStr(m.messageChain));
     })
 
     process.on("SIGINT", async ()=> {

@@ -2,6 +2,7 @@ import Mirai from "./Mirai";
 import { ImessageChain, ImessageObject } from "./messageObject";
 
 export default class Message {
+
     private _MiraiI: Mirai;
     private _type: "GroupMessage" | "FriendMessage" | "TempMessage" | "Auto" = "Auto";
     private _target?: String;
@@ -41,18 +42,49 @@ export default class Message {
         return this;
     }
 
+    quote(): String;
+    quote(t: String): this;
     quote(t?: String) {
         if (t == undefined) {
             return this._quote;
         } else {
-            this._quote = t;
+            if(t != ""){
+                this._quote = t;
+            }
+        }
+
+        return this;
+    }
+
+    add(type: "At", target: String): this;
+    add(type: "Plain", text: String): this;
+    add(type: "Plain" | "At",text?: String,target?: String){
+        switch (type) {
+            case "Plain":
+                this._mclist.push({
+                    "type": "Plain",
+                    "text": text
+                });
+                break;
+            case "At":
+                this._mclist.push({
+                    "type": "At",
+                    "target": target
+                });
+                break;
         }
 
         return this;
     }
 
     send() {
+        if(this._target == undefined){
+            throw {
+                message: "target没有定义"
+            }
+        }
 
+        this._MiraiI.sendMessage(this._type,this._target,this._mclist,this._quote);
     }
 
 }

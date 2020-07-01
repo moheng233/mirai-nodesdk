@@ -2,10 +2,11 @@
 import fly from "flyio";
 // import WebSocket from "ws";
 import WebSocket from "ws";
-import messageChain from "./messageChain";
 import { EventEmitter } from "events";
-import { ImessageObject } from "./messageObject";
+import { ImessageObject, ImessageChain, IGroud, IFirend, IGroudP } from "./messageObject";
 import { IregistCommands, ICommand } from "./registCommands";
+import Message from "./Message";
+import { getPid, getGid, getArg, getStr } from "./tool";
 
 /**
  * 机器人的基础类
@@ -73,11 +74,11 @@ export default class Mirai extends EventEmitter implements IregistCommands {
         })
 
         this.on("inited",(ROBOT: Mirai) => {
-            this.on("message", (m: ImessageObject) => {
-                let message = new messageChain().fromObj(m.messageChain ?? []);
+            this.on("message", (M: ImessageObject) => {
+                let message = M.messageChain;
     
-                if(message.getStr()[0] == this.commandSymbol){
-                    this.execCommand(m,message);
+                if(getStr(message)[0] == this.commandSymbol){
+                    this.execCommand(M);
                 }
             })
 
@@ -85,12 +86,13 @@ export default class Mirai extends EventEmitter implements IregistCommands {
             ROBOT.registCommand({
                 title: "帮助",
                 help: "输出指令的帮助 #帮助 [command]",
-                exec: async function (R: Mirai,M: ImessageObject,Mc: messageChain): Promise<Boolean>{
+                exec: async function (R: Mirai,M: ImessageObject): Promise<Boolean>{
                     let str = "\n";
+                    let arg = getArg(M.messageChain);
 
-                    if(Mc.CommandArg.length === 2){
+                    if(arg.length === 2){
                         for (let e of R.commandList) {
-                            if(e.title === Mc.CommandArg[1]){
+                            if(e.title === arg[1]){
                                 str += `#${e.title}\n  ${e.help} \n`;
 
                                 break;
@@ -102,19 +104,18 @@ export default class Mirai extends EventEmitter implements IregistCommands {
                         });
                     }
                     
-                    let sendpid = M.sender?.id != undefined ? M.sender?.id: "" ;
-                    let sendgid = M.sender?.group?.id != undefined ? M.sender?.group?.id: "";
+                    let sendpid = getPid(M);
+                    let sendgid = getGid(M);
                     
-                    let mid = Mc.getObj()[0].id;
-                    let mct = new messageChain().add_plain(str);
+                    let mid = M.messageChain[0].id ?? "";
 
-                    if(M.type === "FriendMessage") {
-
-                        await R.sendFriendMessage(sendpid, mct, mid);
-                    } else if(M.type === "GroupMessage") {
-            
-                        await R.sendGroupMessage(sendgid, mct, mid);
-                    }
+                    new Message(R)
+                        .type(M.type)
+                        .target(sendgid === "" ? sendpid: sendgid)
+                        .add("Plain",str)
+                        .quote(mid)
+                        .send()
+                    
                     return true;
                 }
             })
@@ -146,10 +147,10 @@ export default class Mirai extends EventEmitter implements IregistCommands {
         return this;
     }
 
-    execCommand(m: ImessageObject,message: messageChain){
+    execCommand(M: ImessageObject){
         for (const e of this.commandList) {
-            if((this.commandSymbol + e.title) === message.CommandArg[0]){
-                e.exec(this,m,message).catch((err) => {
+            if((this.commandSymbol + e.title) === getArg(M.messageChain)[0]){
+                e.exec(this,M).catch((err) => {
                     console.error(err);
                 });
 
@@ -228,7 +229,14 @@ export default class Mirai extends EventEmitter implements IregistCommands {
         return e.data;
     }
 
-    async sendMessage(type: "FriendMessage" | "GroupMessage", target: String, message: messageChain, quote?: String){
+    /**
+     * 三个函数的包装函数
+     * @param type 发送消息的类型
+     * @param target 发送的目标
+     * @param message 要发送的消息链
+     * @param quote 回复
+     */
+    async sendMessage(type: "FriendMessage" | "GroupMessage" | "TempMessage" | "Auto", target: String, message: ImessageChain[], quote?: String){
         if(type === "FriendMessage") {
 
             await this.sendFriendMessage(target, message, quote);
@@ -239,15 +247,20 @@ export default class Mirai extends EventEmitter implements IregistCommands {
     }
 
 
+    
     /**
-     * 使用此方法向指定好友发送消息
+     * 给你亲爱的好友发一条消息
+     * @param target 要发送的好友QQ号
+     * @param message 要发送的消息链
+     * @param quote 要回复的消息
      */
-    async sendFriendMessage(target: String,message: messageChain,quote?: String): Promise<Object>{
+    async sendFriendMessage(target: String,message: ImessageChain[],quote?: String): Promise<Object>{
         let o:any = {
             "sessionKey": this.session,
             "target": target,
-            "messageChain": message.getObj()
+            "messageChain": message
         }
+
         if(quote != undefined){
             o["quote"] = quote;
         }
@@ -256,14 +269,18 @@ export default class Mirai extends EventEmitter implements IregistCommands {
 
         return e.data;
     }
+    
     /**
-     * 使用此方法向指定群发送消息
+     * 在你亲爱的QQ群中发一条消息
+     * @param target 要发送的QQ群号
+     * @param message 要发送的消息
+     * @param quote 要回复的消息
      */
-    async sendGroupMessage(target: String,message: messageChain,quote?: String,): Promise<Object>{
+    async sendGroupMessage(target: String,message: ImessageChain[],quote?: String,): Promise<Object>{
         let o:any = {
             "sessionKey": this.session,
             "target": target,
-            "messageChain": message.getObj()
+            "messageChain": message
         }
 
         if(quote != undefined){
@@ -280,11 +297,91 @@ export default class Mirai extends EventEmitter implements IregistCommands {
      */
     async recallMessage(target: String): Promise<Object>{
         let e = await fly.post("/recall",{
+            "sessionKey": this.session,
             "target": target
         })
 
         return e.data;
     }
+
+    /**
+     * 禁言！
+     * @param gid 要禁言的qq群
+     * @param pid 要禁言的人
+     * @param time 要禁言的时间 单位是s
+     */
+    async Mute(gid: String,pid: String,time: Number): Promise<{code: String,msg: String}>{
+        let e = await fly.post("/mute", {
+            "sessionKey": this.session,
+            "target": gid,
+            "memberId": pid,
+            "time": time
+        })
+
+        return e.data;
+    }
+
+    async unMute(gid: String,pid: String): Promise<{code: String,msg: String}>{
+        let e = await fly.post("/unmute", {
+            "sessionKey": this.session,
+            "target": gid,
+            "memberId": pid
+        })
+
+        return e.data;
+    }
+
+    /**
+     * 我tm全体禁言!
+     * @param target 要禁言的群
+     */
+    async allMute(target: String): Promise<{code: String,msg: String}>{
+        let e = await fly.post("/muteAll",{
+            "sessionKey": this.session,
+            "target": target
+        })
+
+        return e.data;
+    }
+
+    /**
+     * 我tm解除禁言！
+     * @param target 要解除禁言的群
+     */
+    async unallMute(target: String): Promise<{code: String,msg: String}>{
+        let e = await fly.post("/unmuteAll",{
+            "sessionKey": this.session,
+            "target": target
+        })
+
+        return e.data;
+    }
+
+    async getGroudList(): Promise<IGroud[]>{
+        let e = await fly.get("/groupList",{
+            "sessionKey": this.session
+        })
+
+        return e.data;
+    }
+
+    async getGroudPList(gid: String): Promise<IGroudP[]>{
+        let e = await fly.get("/memberList", {
+            "sessionKey": this.session,
+            "target": gid
+        })
+
+        return e.data;
+    }
+
+    async getFirendList(): Promise<IFirend[]>{
+        let e = await fly.get("/friendList", {
+            "sessionKey": this.session
+        })
+
+        return e.data;
+    }
+
     /**
      * 初始化消息监听
      */

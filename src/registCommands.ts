@@ -1,6 +1,5 @@
 import Mirai from "./Mirai";
 import { ImessageObject } from "./messageObject";
-import messageChain from "./messageChain";
 
 export interface IregistCommands {
     commandList: ICommand[];
@@ -12,11 +11,17 @@ export interface IregistCommands {
      */
     registCommand(cp: ICommand): Mirai;
     
-    execCommand(m: ImessageObject,message: messageChain): void;
+    execCommand(m: ImessageObject): void;
 }
 
 export interface ICommand {
+    /**
+     * 指令的触发条件，不带#
+     */
     title: String,
+    /**
+     * 指令的帮助
+     */
     help: String,
-    exec: (R: Mirai,M: ImessageObject,Mc: messageChain) => Promise<Boolean>,
+    exec: (R: Mirai,M: ImessageObject) => Promise<Boolean>,
 }

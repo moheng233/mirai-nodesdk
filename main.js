@@ -1,9 +1,13 @@
 // @ts-check
 
-import robot from "./build/robot";
-import messageChain from "./build/messageChain"
+const Mirai = require("./build/Mirai").default;
+const Message = require("./build/Message").default;
+const tool = require("./build/tool");
+const messageObject = require("./build/messageObject");
 
-export {
-    robot,
-    messageChain
-};
+module.exports = {
+    Mirai,
+    Message,
+    tool,
+    messageObject
+}
