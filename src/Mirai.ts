@@ -391,7 +391,7 @@ export default class Mirai extends EventEmitter implements IregistCommands {
         wsMessage.on("open",() => {
             this.emit("wsinited",wsMessage);
 
-            console.log("websocket 链接成功");
+            console.log("websocket 链接成功!");
         });
 
         wsMessage.on("message", (e) => {
